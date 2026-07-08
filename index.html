@@ -45,7 +45,6 @@
   footer button{flex:1; min-height:50px; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; border:none}
   #send{background:var(--bleu); color:#fff}
   #send:disabled{background:#b3c4ea}
-  #copy{background:#eef2f9; color:var(--bleu-fonce); flex:0 0 30%}
   .note{margin:22px 6px 8px; font-size:.85rem; color:var(--gris)}
 </style>
 </head>
@@ -61,8 +60,7 @@
 <main id="app"></main>
 <p class="note">Liste générée pour validation — elle alimentera l’assistant du site (le chatbot ne proposera un rendez-vous que pour les actes cochés «&nbsp;Oui&nbsp;»).</p>
 <footer>
-  <button id="copy">Copier</button>
-  <button id="send">Envoyer par email</button>
+  <button id="send">Valider</button>
 </footer>
 <script>
 const DATA = [
@@ -216,12 +214,8 @@ function summary(){
   return t;
 }
 document.getElementById('send').onclick=()=>{
-  location.href='mailto:timothee@mercier.app?subject='+encodeURIComponent('Soins pratiqués — réponses')+
+  location.href='mailto:mercier.timothee@pm.me?subject='+encodeURIComponent('Soins pratiqués — réponses')+
     '&body='+encodeURIComponent(summary());
-};
-document.getElementById('copy').onclick=async(e)=>{
-  await navigator.clipboard.writeText(summary());
-  e.target.textContent='Copié ✔'; setTimeout(()=>e.target.textContent='Copier',1600);
 };
 paint();
 </script>
