@@ -36,6 +36,10 @@
   .btns button.b-oui.on{background:var(--vert); border-color:var(--vert); color:#fff}
   .btns button.b-non.on{background:var(--rouge); border-color:var(--rouge); color:#fff}
   .btns button.b-nsp.on{background:var(--gris); border-color:var(--gris); color:#fff}
+  .notew{margin-top:10px}
+  .notew textarea{width:100%; min-height:52px; border:1.5px solid var(--trait); border-radius:10px;
+    padding:10px; font:inherit; font-size:.92rem; resize:vertical; background:#fafbfe}
+  .notew textarea:focus{outline:none; border-color:var(--bleu)}
   footer{position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--trait);
     padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px}
   footer button{flex:1; min-height:50px; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; border:none}
@@ -150,6 +154,7 @@ const DATA = [
 
 const KEY='cdrd-soins-v1';
 let state = JSON.parse(localStorage.getItem(KEY)||'{}');
+let notes = JSON.parse(localStorage.getItem(KEY+'-notes')||'{}');
 // Pré-remplissage (uniquement si pas déjà répondu)
 DATA.forEach(([_,items])=>items.forEach(([id,,,pre])=>{ if(pre && !(id in state)) state[id]=pre; }));
 
@@ -166,6 +171,10 @@ DATA.forEach(([cat,items])=>{
         <button class="b-oui" onclick="setv('${id}','oui')">✔ Oui</button>
         <button class="b-non" onclick="setv('${id}','non')">✖ Non</button>
         <button class="b-nsp" onclick="setv('${id}','nsp')">?</button>
+      </div>
+      <div class="notew" id="nw-${id}" hidden>
+        <textarea placeholder="Une précision ? (ex. « seulement le Dr X », « au cas par cas »…)"
+          oninput="setnote('${id}',this.value)"></textarea>
       </div>`;
     app.appendChild(d);
   });
@@ -180,6 +189,9 @@ function paint(){
     el.querySelectorAll('.btns button').forEach(b=>b.classList.remove('on'));
     if(v) { n++; const map={oui:'.b-oui',non:'.b-non',nsp:'.b-nsp'};
       el.querySelector(map[v]).classList.add('on'); }
+    const nw=document.getElementById('nw-'+id), ta=nw.querySelector('textarea');
+    nw.hidden = v!=='nsp';
+    if(document.activeElement!==ta) ta.value = notes[id]||'';
   }));
   document.getElementById('pbar').style.width=(100*n/total)+'%';
   document.getElementById('ptxt').textContent=n+' / '+total+' réponses';
@@ -188,11 +200,13 @@ function paint(){
 }
 function setv(id,v){ state[id]= state[id]===v ? undefined : v; if(state[id]===undefined) delete state[id];
   localStorage.setItem(KEY,JSON.stringify(state)); paint(); }
+function setnote(id,txt){ if(txt.trim()) notes[id]=txt.trim(); else delete notes[id];
+  localStorage.setItem(KEY+'-notes',JSON.stringify(notes)); }
 
 function summary(){
   const grp={oui:[],non:[],nsp:[],vide:[]};
   DATA.forEach(([_,items])=>items.forEach(([id,label])=>{
-    grp[state[id]||'vide'].push(label);
+    grp[state[id]||'vide'].push(label + (notes[id] ? ' — « '+notes[id]+' »' : ''));
   }));
   let t='RÉPONSES — Soins pratiqués au Cabinet Dentaire Rive Droite\n\n';
   t+='✔ PRATIQUÉS ('+grp.oui.length+') :\n'+grp.oui.map(x=>'  • '+x).join('\n');
