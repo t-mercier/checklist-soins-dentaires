@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Soins pratiqués — Cabinet Dentaire Rive Droite</title>
+<style>
+  :root{
+    --bleu:#2563eb; --bleu-fonce:#1e40af; --vert:#16a34a; --rouge:#dc2626;
+    --gris:#6b7280; --fond:#f4f6fb; --carte:#ffffff; --encre:#111827; --trait:#e5e7eb;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; background:var(--fond); color:var(--encre);
+    font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding-bottom:120px}
+  header{background:linear-gradient(135deg,var(--bleu),var(--bleu-fonce)); color:#fff; padding:24px 20px 18px}
+  header h1{margin:0 0 6px; font-size:1.35rem; line-height:1.25}
+  header p{margin:0; font-size:.92rem; opacity:.92}
+  .progress-wrap{position:sticky; top:0; z-index:10; background:var(--fond); padding:10px 20px 8px; border-bottom:1px solid var(--trait)}
+  .progress-txt{font-size:.82rem; color:var(--gris); margin-bottom:5px; display:flex; justify-content:space-between}
+  .bar{height:8px; background:#dbe3f0; border-radius:99px; overflow:hidden}
+  .bar i{display:block; height:100%; width:0; background:var(--bleu); border-radius:99px; transition:width .25s}
+  main{padding:8px 14px}
+  h2{font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--gris); margin:26px 6px 10px}
+  .item{background:var(--carte); border:1px solid var(--trait); border-radius:14px; padding:14px; margin-bottom:10px;
+    box-shadow:0 1px 2px rgba(17,24,39,.04)}
+  .item.done-oui{border-color:#bbe3c7} .item.done-non{border-color:#f3c4c4}
+  .lbl{font-weight:600; font-size:1rem}
+  .hint{font-size:.85rem; color:var(--gris); margin-top:2px}
+  .pre{display:inline-block; font-size:.7rem; font-weight:600; color:var(--bleu-fonce); background:#e4ecfd;
+    border-radius:99px; padding:1px 8px; margin-left:6px; vertical-align:2px}
+  .btns{display:flex; gap:8px; margin-top:12px}
+  .btns button{flex:1; min-height:46px; border-radius:11px; border:1.5px solid var(--trait); background:#fff;
+    font-size:.95rem; font-weight:600; color:var(--gris); cursor:pointer}
+  .btns button.b-oui.on{background:var(--vert); border-color:var(--vert); color:#fff}
+  .btns button.b-non.on{background:var(--rouge); border-color:var(--rouge); color:#fff}
+  .btns button.b-nsp.on{background:var(--gris); border-color:var(--gris); color:#fff}
+  footer{position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--trait);
+    padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px}
+  footer button{flex:1; min-height:50px; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; border:none}
+  #send{background:var(--bleu); color:#fff}
+  #send:disabled{background:#b3c4ea}
+  #copy{background:#eef2f9; color:var(--bleu-fonce); flex:0 0 30%}
+  .note{margin:22px 6px 8px; font-size:.85rem; color:var(--gris)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🦷 Quels soins pratiquez-vous&nbsp;?</h1>
+  <p>Cabinet Dentaire Rive Droite — coche <b>Oui</b> ou <b>Non</b> pour chaque acte (tes réponses sont sauvegardées automatiquement, tu peux reprendre plus tard). Les badges «&nbsp;pré-rempli&nbsp;» reprennent ce qui est déjà confirmé&nbsp;: corrige si besoin.</p>
+</header>
+<div class="progress-wrap">
+  <div class="progress-txt"><span id="ptxt">0 réponse</span><span id="pleft"></span></div>
+  <div class="bar"><i id="pbar"></i></div>
+</div>
+<main id="app"></main>
+<p class="note">Liste générée pour validation — elle alimentera l’assistant du site (le chatbot ne proposera un rendez-vous que pour les actes cochés «&nbsp;Oui&nbsp;»).</p>
+<footer>
+  <button id="copy">Copier</button>
+  <button id="send">Envoyer par email</button>
+</footer>
+<script>
+const DATA = [
+["Consultation & imagerie", [
+  ["consult","Consultation / contrôle",""],
+  ["bilan","Bilan bucco-dentaire complet",""],
+  ["retro","Radiographie rétro-alvéolaire",""],
+  ["pano","Radiographie panoramique",""],
+  ["cbct","Cône beam (imagerie 3D)","", "oui"],
+  ["empreinte-opt","Empreinte optique (scanner intra-oral)",""],
+]],
+["Prévention & hygiène", [
+  ["detartrage","Détartrage","", "oui"],
+  ["fluor","Application de vernis fluoré",""],
+  ["sillons","Scellement de sillons","", "oui"],
+  ["prophylaxie","Séances de prophylaxie / coaching hygiène",""],
+]],
+["Soins conservateurs", [
+  ["carie","Traitement de carie (composite)","", "oui"],
+  ["amalgame","Obturation à l’amalgame","", "oui"],
+  ["inlay","Inlay / Onlay","", "oui"],
+  ["inlaycore","Reconstitution corono-radiculaire (inlay-core)",""],
+  ["sensibilite","Traitement de l’hypersensibilité dentinaire",""],
+  ["mih","Prise en charge MIH (hypominéralisation)",""],
+]],
+["Endodontie", [
+  ["endo","Traitement de racine / dévitalisation","", "oui"],
+  ["rte","Retraitement endodontique (reprise)","déjà indiqué : Dr Seguela uniquement","oui"],
+  ["apectomie","Chirurgie apicale (apectomie / résection apicale)",""],
+  ["eclair-interne","Éclaircissement interne d’une dent dévitalisée",""],
+]],
+["Chirurgie orale", [
+  ["extraction","Extraction simple",""],
+  ["dds","Extraction de dents de sagesse",""],
+  ["extr-chir","Extraction chirurgicale (dent incluse / racine résiduelle)",""],
+  ["frenectomie","Frénectomie (frein de langue / lèvre)",""],
+  ["kyste","Exérèse de kyste / petite chirurgie des tissus mous",""],
+  ["biopsie","Biopsie",""],
+]],
+["Implantologie", [
+  ["implant","Pose d’implant dentaire","", "oui"],
+  ["greffe-os","Greffe osseuse (classique)","", "oui"],
+  ["sinuslift","Sinus lift (comblement du plancher sinusien)","déjà indiqué : non pratiqué","non"],
+  ["rog","Régénération osseuse guidée (ROG / membranes)",""],
+  ["pro-implant","Couronne / prothèse sur implant","", "oui"],
+  ["bridge-complet","Bridge complet sur implants (type All-on-4/6)",""],
+  ["periimplantite","Traitement de la péri-implantite",""],
+]],
+["Parodontologie", [
+  ["gingivite","Traitement de la gingivite","", "oui"],
+  ["surfacage","Détartrage-surfaçage radiculaire","", "oui"],
+  ["chir-paro","Chirurgie parodontale (lambeaux, assainissement)","", "oui"],
+  ["greffe-gencive","Greffe de gencive","", "oui"],
+  ["maintenance","Maintenance parodontale","", "oui"],
+]],
+["Prothèses", [
+  ["cour-ceram","Couronne céramique / zircone / métal-céramique","", "oui"],
+  ["bridge","Bridge","", "oui"],
+  ["amovible-part","Prothèse amovible partielle","", "oui"],
+  ["amovible-compl","Prothèse amovible complète (dentier)","", "oui"],
+  ["repar-prothese","Réparation / rebasage de prothèse",""],
+  ["provisoire","Prothèse provisoire / dent provisoire",""],
+]],
+["Esthétique", [
+  ["blanchi-cab","Blanchiment au fauteuil (au cabinet)","", "oui"],
+  ["blanchi-dom","Blanchiment ambulatoire (gouttières à domicile)","", "oui"],
+  ["facette-ceram","Facettes céramique",""],
+  ["facette-compo","Facettes composite",""],
+]],
+["Pédodontie (enfants)", [
+  ["pedo-soins","Soins des enfants (caries dents de lait…)","", "oui"],
+  ["pulpotomie","Pulpotomie","", "oui"],
+  ["mainteneur","Mainteneur d’espace",""],
+  ["meopa","Sédation consciente MEOPA",""],
+]],
+["Occlusion, ATM & divers", [
+  ["bruxisme","Gouttière de bruxisme",""],
+  ["oam","Orthèse d’avancée mandibulaire (ronflement / apnée)",""],
+  ["atm","Prise en charge ATM / SADAM",""],
+  ["protege-dents","Protège-dents de sport sur mesure",""],
+  ["urgences","Urgences dentaires (douleur, traumatisme)",""],
+]],
+["Non pratiqué a priori (à confirmer)", [
+  ["ortho-enfant","Orthodontie de l’enfant","déjà indiqué : non","non"],
+  ["ortho-adulte","Orthodontie adulte / aligneurs","déjà indiqué : non","non"],
+  ["laser","Traitements au laser","déjà indiqué : non","non"],
+]],
+];
+
+const KEY='cdrd-soins-v1';
+let state = JSON.parse(localStorage.getItem(KEY)||'{}');
+// Pré-remplissage (uniquement si pas déjà répondu)
+DATA.forEach(([_,items])=>items.forEach(([id,,,pre])=>{ if(pre && !(id in state)) state[id]=pre; }));
+
+const app=document.getElementById('app');
+let total=0;
+DATA.forEach(([cat,items])=>{
+  const h=document.createElement('h2'); h.textContent=cat; app.appendChild(h);
+  items.forEach(([id,label,hint,pre])=>{
+    total++;
+    const d=document.createElement('div'); d.className='item'; d.id='it-'+id;
+    d.innerHTML=`<div class="lbl">${label}${pre?'<span class="pre">pré-rempli</span>':''}</div>`+
+      (hint?`<div class="hint">${hint}</div>`:'')+
+      `<div class="btns">
+        <button class="b-oui" onclick="setv('${id}','oui')">✔ Oui</button>
+        <button class="b-non" onclick="setv('${id}','non')">✖ Non</button>
+        <button class="b-nsp" onclick="setv('${id}','nsp')">?</button>
+      </div>`;
+    app.appendChild(d);
+  });
+});
+
+function paint(){
+  let n=0;
+  DATA.forEach(([_,items])=>items.forEach(([id])=>{
+    const v=state[id], el=document.getElementById('it-'+id);
+    el.classList.toggle('done-oui', v==='oui');
+    el.classList.toggle('done-non', v==='non');
+    el.querySelectorAll('.btns button').forEach(b=>b.classList.remove('on'));
+    if(v) { n++; const map={oui:'.b-oui',non:'.b-non',nsp:'.b-nsp'};
+      el.querySelector(map[v]).classList.add('on'); }
+  }));
+  document.getElementById('pbar').style.width=(100*n/total)+'%';
+  document.getElementById('ptxt').textContent=n+' / '+total+' réponses';
+  document.getElementById('pleft').textContent= n===total ? 'Terminé 🎉' : (total-n)+' restantes';
+  document.getElementById('send').disabled = n===0;
+}
+function setv(id,v){ state[id]= state[id]===v ? undefined : v; if(state[id]===undefined) delete state[id];
+  localStorage.setItem(KEY,JSON.stringify(state)); paint(); }
+
+function summary(){
+  const grp={oui:[],non:[],nsp:[],vide:[]};
+  DATA.forEach(([_,items])=>items.forEach(([id,label])=>{
+    grp[state[id]||'vide'].push(label);
+  }));
+  let t='RÉPONSES — Soins pratiqués au Cabinet Dentaire Rive Droite\n\n';
+  t+='✔ PRATIQUÉS ('+grp.oui.length+') :\n'+grp.oui.map(x=>'  • '+x).join('\n');
+  t+='\n\n✖ NON PRATIQUÉS ('+grp.non.length+') :\n'+grp.non.map(x=>'  • '+x).join('\n');
+  if(grp.nsp.length) t+='\n\n? À PRÉCISER ('+grp.nsp.length+') :\n'+grp.nsp.map(x=>'  • '+x).join('\n');
+  if(grp.vide.length) t+='\n\n(sans réponse : '+grp.vide.join(', ')+')';
+  return t;
+}
+document.getElementById('send').onclick=()=>{
+  location.href='mailto:timothee@mercier.app?subject='+encodeURIComponent('Soins pratiqués — réponses')+
+    '&body='+encodeURIComponent(summary());
+};
+document.getElementById('copy').onclick=async(e)=>{
+  await navigator.clipboard.writeText(summary());
+  e.target.textContent='Copié ✔'; setTimeout(()=>e.target.textContent='Copier',1600);
+};
+paint();
+</script>
+</body>
+</html>
